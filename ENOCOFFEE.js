@@ -1,6 +1,6 @@
 var serialPort = require("serialport"); //npm install serialport
 var sf = require("sf"); //npm install sf
-var irc = require("irc");
+var irc = require("irc"); //npm install node-irc
 
 // Configs & Globals
 
@@ -127,9 +127,7 @@ function handleSerialData(chunk) {
 //                     action:function(){ircmsg("ELOWCOFFEE: <500 g remaining!");deactivateEvent("500warn");}}
 
 function handleEvents() {
-  //if(sensorValueAvg % 10 === 0) {
-  //  console.log("Sensor value avg: " + sensorValueAvg);
-  //}
+
   for(var i=0;i<eventArray.length;i++) {
       var e = eventArray[i];
 
@@ -162,14 +160,14 @@ function handleEvents() {
 // IRC stuff
 
 function initializeIRC() {
-  bot = new irc.Client(ircServer, botNick, ircConfiguration);
-  bot.addListener("message", onIrcMessage);
-  bot.addListener('error', function(message) {
-    console.log('IRC error: ', message);
-  });
-  bot.addListener('quit', function(message) {
-    console.log('IRC quit: ', message);
-  });
+   bot = new irc.Client(ircServer, botNick, ircConfiguration);
+   bot.addListener("message", onIrcMessage);
+   bot.addListener('error', function(message) {
+      console.log('IRC error: ', message);
+   });
+   bot.addListener('quit', function(message) {
+      console.log('IRC quit: ', message);
+   });
 }
 
 function ircmsg(msg) {
