@@ -14,12 +14,12 @@ var coffeeLimits = [[25, "no coffee", 0], [100, "half a packet", 250], [200, "on
 
 var ircChannel = "#coffeetest2";
 var ircServer = "irc.cc.tut.fi";
-var botNick = "CoffeeBotJr";
+var botNick = "CoffeeBot";
 var ircConfiguration = {
     userName: 'coffeebot',
     realName: 'Your friendly coffee servant',
     port: 6667,
-    debug: true,
+    debug: false,
     showErrors: false,
     autoRejoin: true,
     autoConnect: true,
@@ -33,11 +33,11 @@ var ircConfiguration = {
 };
 
 var eventArray = [{id:"500warn", type:"below", limit:200, active:true, timelimit:10*60, timeoutId:null, 
-                     action:function(){ircmsg("ELOWCOFFEE: <500 g remaining!");deactivateEvent("500warn");activateEvent("activatewarns")}},
+                     action:function(){ircnotice("ELOWCOFFEE: <500 g remaining!");deactivateEvent("500warn");activateEvent("activatewarns")}},
                   {id:"250warn", type:"below", limit:100, active:true, timelimit:10*60, timeoutId:null, 
-                     action:function(){ircmsg("EVERYLOWCOFFEE: <250 g remaining!");deactivateEvent("250warn");activateEvent("activatewarns")}},
+                     action:function(){ircnotice("EVERYLOWCOFFEE: <250 g remaining!");deactivateEvent("250warn");activateEvent("activatewarns")}},
                   {id:"activatewarns", type:"over", limit:220, active:false, timelimit:5*60, timeoutId:null, 
-                     action:function(){activateEvent("500warn");activateEvent("250warn");ircmsg("Coffee++ -- coffee now at " + getCoffeeEstimateStr() + " <3")}}
+                     action:function(){activateEvent("500warn");activateEvent("250warn");ircnotice("Coffee++ -- coffee now at " + getCoffeeEstimateStr() + " <3")}}
                   ];
 
 var bot = null;
@@ -47,6 +47,8 @@ var bot = null;
 determineArduinoSerialPath();
 initializeIRC();
 initializeSerial();
+setInterval(function() {bot.say(botNick, "a");}, 300000); //Say something so self every once in a while to trigger the autoconnect 
+                                                         //if we have dropped from the net. (It's a hack.)
 
 // Arduino stuff
 
@@ -165,18 +167,24 @@ function initializeIRC() {
    bot.addListener('error', function(message) {
       console.log('IRC error: ', message);
    });
-   bot.addListener('quit', function(message) {
-      console.log('IRC quit: ', message);
-   });
 }
 
 function ircmsg(msg) {
    bot.say(ircChannel, msg);
 }
 
+function ircnotice(msg) {
+   bot.say(ircChannel, msg);
+}
+
 function onIrcMessage(from, to, message) {
    if (message.substring(0,7) === "!coffee") {
-      ircmsg("Coffee currently at " + getCoffeeEstimateStr() + ".");
+      var msg = "Coffee currently at " + getCoffeeEstimateStr() + ".";
+      if (to === botNick) {
+         bot.say(from, msg);
+      } else {
+         ircmsg(msg);
+      }
    }
 }
 
