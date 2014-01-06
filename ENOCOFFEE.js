@@ -69,6 +69,7 @@ function determineArduinoSerialPath() {
          if (results[i]["manufacturer"].indexOf("Arduino") !== -1) {
             found = true;
             arduinoSerialPath = results[i]["comName"];
+            console.log("Arduino serial found: " + arduinoSerialPath);
          }
       }
       if (!found) {
@@ -87,6 +88,8 @@ function initializeSerial() {
 
    serial = new serialPort.SerialPort(arduinoSerialPath, {baudrate : 9200});
 
+   console.log("Arduino serial opened: " + arduinoSerialPath);
+
    serial.on("data", handleSerialData);
 
    serial.on("error", handleSerialErr);
@@ -94,7 +97,7 @@ function initializeSerial() {
 
 function handleSerialErr(msg) {
    console.log("Serial port error: " + msg);
-   setTimeout(deterineArduinoSerialPath, 2000);
+   setTimeout(determineArduinoSerialPath, 2000);
    setTimeout(initializeSerial, 4000);
 }
 
@@ -162,10 +165,14 @@ function handleEvents() {
 // IRC stuff
 
 function initializeIRC() {
+   console.log("Initializing IRC connection...");
    bot = new irc.Client(ircServer, botNick, ircConfiguration);
    bot.addListener("message", onIrcMessage);
    bot.addListener('error', function(message) {
       console.log('IRC error: ', message);
+   });
+   bot.addListener('names', function(chan, nicks) {
+      console.log("Connected to channel " + ircChannel);
    });
 }
 
