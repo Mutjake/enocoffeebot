@@ -10,7 +10,22 @@ var serial = null;
 var sensorValueBuffer = [800,800,800,800,800];
 var sensorValueAvg = 0;
 
-var coffeeLimits = [[25, "no coffee", 0], [100, "half a packet", 250], [200, "one packet", 500], [800, "more than five packets", 2500]];
+var coffeeAmountSamples = [800, 800, 800, 800, 800]; // to observe when the coffee is added.
+
+var coffeeLimits = [[35, "no coffee", 0],
+                     [36, "practically no coffee", 5], 
+                     [60, "less than a quarter of a packet", 90],
+                     [80, "quarter of a packet", 125], 
+                     [130, "half a packet", 250], 
+                     [190, "one packet", 500], 
+                     [280, "one and half packets", 750], 
+                     [360, "two packets", 1000],
+                     [460, "two and half packets", 1250],
+                     [540, "three packets", 1500],
+                     [640, "three and half packets", 1750],
+                     [720, "four packets", 2000],
+                     [810, "four and half packets", 2250],
+                     [800, "five packets or more \\:D/", 2500]];
 
 var ircChannel = "#coffeetest2";
 var ircServer = "irc.cc.tut.fi";
@@ -32,13 +47,44 @@ var ircConfiguration = {
     messageSplit: 512
 };
 
-var eventArray = [{id:"500warn", type:"below", limit:200, active:true, timelimit:10*60, timeoutId:null, 
-                     action:function(){ircnotice("ELOWCOFFEE: <500 g remaining!");deactivateEvent("500warn");activateEvent("activatewarns")}},
-                  {id:"250warn", type:"below", limit:100, active:true, timelimit:10*60, timeoutId:null, 
-                     action:function(){ircnotice("EVERYLOWCOFFEE: <250 g remaining!");deactivateEvent("250warn");activateEvent("activatewarns")}},
-                  {id:"activatewarns", type:"over", limit:220, active:false, timelimit:5*60, timeoutId:null, 
-                     action:function(){activateEvent("500warn");activateEvent("250warn");ircnotice("Coffee++ -- coffee now at " + getCoffeeEstimateStr() + " <3")}}
+var eventArray = [{id:"500warn", type:"below", limit:190, active:true, timelimit:10*60, timeoutId:null, 
+                     action:function()
+                        {
+                           ircnotice("ELOWCOFFEE: ~500 g remaining!");
+                           deactivateEvent("500warn");
+                           activateEvent("activatewarns");
+                        }},
+                  {id:"250warn", type:"below", limit:120, active:true, timelimit:10*60, timeoutId:null, 
+                     action:function()
+                        {
+                           ircnotice("EVERYLOWCOFFEE: ~250 g remaining!");
+                           deactivateEvent("250warn");
+                           activateEvent("activatewarns");
+                        }},
+                  {id:"100warn", type:"below", limit:60, active:true, timelimit:10*60, timeoutId:null, 
+                     action:function()
+                        {
+                           ircnotice("ECOFFEECRITICAL: We're running on fumes!");
+                           deactivateEvent("250warn");
+                           activateEvent("activatewarns");
+                        }},
+                  {id:"activatewarns", type:"over", limit:191, active:false, timelimit:5*60, timeoutId:null, 
+                     action:function()
+                        {
+                           activateEvent("500warn");
+                           activateEvent("250warn");
+                           activateEvent("100warn");
+                           //ircnotice("Coffee++ -- coffee now at " + getCoffeeEstimateStr() + ".");
+                        }}
                   ];
+
+function determineIfCoffeeAdded() {
+   if ((coffeeAmountSamples[0]+coffeeAmountSamples[1]+coffeeAmountSamples[2]+coffeeAmountSamples[3]+coffeeAmountSamples[4])/5+40 < sensorValueAvg) {
+      ircnotice("Coffee++ -- coffee now at " + getCoffeeEstimateStr() + ".");
+   }
+   coffeeAmountSamples.push(sensorValueAvg);
+   coffeeAmountSamples.shift();
+}
 
 var bot = null;
 
@@ -47,8 +93,9 @@ var bot = null;
 determineArduinoSerialPath();
 initializeIRC();
 initializeSerial();
-setInterval(function() {bot.say(botNick, "a");}, 300000); //Say something so self every once in a while to trigger the autoconnect 
-                                                         //if we have dropped from the net. (It's a hack.)
+setInterval(function() {bot.say(botNick, "a");}, 5*60*1000); //Say something so self every once in a while to trigger the autoconnect 
+                                                          //if we have dropped from the net. (It's a hack.)
+setInterval(determineIfCoffeeAdded, 2*60*1000);
 
 // Arduino stuff
 
@@ -218,7 +265,7 @@ function getCoffeeEstimateStr() {
       if (coffeeLimits[i][0] > sensorValueAvg) {
          var returnVal = coffeeLimits[i-1][1];
          //console.log(returnVal);
-         return returnVal + " (" + sensorValueAvg.toString() + ")";
+         return returnVal;
       }
    }
    return coffeeLimits[coffeeLimits.length-1][1];
