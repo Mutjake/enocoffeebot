@@ -10,6 +10,8 @@ var serial = null;
 var sensorValueBuffer = [800,800,800,800,800];
 var sensorValueAvg = 0;
 
+var latestUpdate = null;
+
 var coffeeAmountSamples = [800, 800, 800, 800, 800]; // to observe when the coffee is added.
 
 var coffeeLimits = [[35, "no coffee", 0],
@@ -40,8 +42,8 @@ var ircConfiguration = {
     autoConnect: true,
     channels: [ircChannel],
     secure: false,
-    selfSigned: false,
-    certExpired: false,
+    selfSigned: true,
+    certExpired: true,
     floodProtection: true,
     floodProtectionDelay: 1000,
     messageSplit: 512
@@ -80,7 +82,12 @@ var eventArray = [{id:"500warn", type:"below", limit:190, active:true, timelimit
 
 function determineIfCoffeeAdded() {
    if ((coffeeAmountSamples[0]+coffeeAmountSamples[1]+coffeeAmountSamples[2]+coffeeAmountSamples[3]+coffeeAmountSamples[4])/5+40 < sensorValueAvg) {
-      ircnotice("Coffee++ -- coffee now at " + getCoffeeEstimateStr() + ".");
+      setTimeout(function() {ircnotice("Coffee++ -- coffee now at " + getCoffeeEstimateStr() + ".");}, 5000); // wait a bit to let the average settle.
+      coffeeAmountSamples[0] = sensorValueAvg;
+      coffeeAmountSamples[1] = sensorValueAvg;
+      coffeeAmountSamples[2] = sensorValueAvg;
+      coffeeAmountSamples[3] = sensorValueAvg;
+      coffeeAmountSamples[4] = sensorValueAvg;
    }
    coffeeAmountSamples.push(sensorValueAvg);
    coffeeAmountSamples.shift();
@@ -145,7 +152,7 @@ function initializeSerial() {
 function handleSerialErr(msg) {
    console.log("Serial port error: " + msg);
    setTimeout(determineArduinoSerialPath, 2000);
-   setTimeout(initializeSerial, 4000);
+   setTimeout(initializeSerial, 10000);
 }
 
 function handleSerialData(chunk) {
@@ -158,6 +165,8 @@ function handleSerialData(chunk) {
 
       sensorValueBuffer.push(parseResult);
       sensorValueBuffer.shift();
+
+      latestUpdate = new Date();
 
       //console.log(parseResult);
 
@@ -233,7 +242,7 @@ function ircnotice(msg) {
 
 function onIrcMessage(from, to, message) {
    if (message.substring(0,7) === "!coffee") {
-      var msg = "Coffee currently at " + getCoffeeEstimateStr() + ".";
+      var msg = "Coffee currently at " + getCoffeeEstimateStr() + ". (Latest update " + ((new Date() - latestUpdate) / 1000).toString() + " seconds ago)";
       if (to === botNick) {
          bot.say(from, msg);
       } else {
