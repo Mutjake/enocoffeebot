@@ -120,14 +120,16 @@ function determineArduinoSerialPath() {
       }
       var found = false;
       for (var i = 0; i < results.length; i++) {
-         if (results[i]["manufacturer"].indexOf("Arduino") !== -1) {
-            found = true;
-            arduinoSerialPath = results[i]["comName"];
-            console.log("Arduino serial found: " + arduinoSerialPath);
-         } else if (result[i]["pnpId"].indexOf("Arduino") !== -1) {
-            found = true;
-            arduinoSerialPath = results[i]["comName"];
-            console.log("Arduino serial found: " + arduinoSerialPath);
+         if (results[i]["manufacturer"]) {
+            if (results[i]["manufacturer"].indexOf("Arduino") !== -1) {
+               found = true;
+               arduinoSerialPath = results[i]["comName"];
+               console.log("Arduino serial found: " + arduinoSerialPath);
+            } else if (result[i]["pnpId"].indexOf("Arduino") !== -1) {
+               found = true;
+               arduinoSerialPath = results[i]["comName"];
+               console.log("Arduino serial found: " + arduinoSerialPath);
+            }
          }
       }
       if (!found) {
