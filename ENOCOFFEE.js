@@ -124,6 +124,10 @@ function determineArduinoSerialPath() {
             found = true;
             arduinoSerialPath = results[i]["comName"];
             console.log("Arduino serial found: " + arduinoSerialPath);
+         } else if (result[i]["pnpId"].indexOf("Arduino") !== -1) {
+            found = true;
+            arduinoSerialPath = results[i]["comName"];
+            console.log("Arduino serial found: " + arduinoSerialPath);
          }
       }
       if (!found) {
