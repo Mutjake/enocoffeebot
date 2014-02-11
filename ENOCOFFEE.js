@@ -1,7 +1,7 @@
 var serialPort = require("serialport"); //npm install serialport
 var sf = require("sf"); //npm install sf
 var irc = require("irc"); //npm install node-irc
-
+var os = require("os");
 // Configs & Globals
 
 var arduinoSerialPath = null;
@@ -29,15 +29,16 @@ var coffeeLimits = [[35, "no coffee", 0],
                      [810, "four and half packets", 2250],
                      [800, "five packets or more \\:D/", 2500]];
 
-var ircChannel = "#coffeetest2";
+var ircChannel = "#test-coffeebot";
 var ircServer = "irc.cc.tut.fi";
 var botNick = "CoffeeBot";
 var ircConfiguration = {
     userName: 'coffeebot',
     realName: 'Your friendly coffee servant',
+    //port: 994,
     port: 6667,
-    debug: false,
-    showErrors: false,
+    debug: true,
+    showErrors: true,
     autoRejoin: true,
     autoConnect: true,
     channels: [ircChannel],
@@ -126,11 +127,10 @@ function determineArduinoSerialPath() {
                arduinoSerialPath = results[i]["comName"];
                console.log("Arduino serial found: " + arduinoSerialPath);
             } 
-         } else if (result[i]["pnpId"].indexOf("Arduino") !== -1) {
+         } else if (results[i]["pnpId"].indexOf("Arduino") !== -1) {
                found = true;
                arduinoSerialPath = results[i]["comName"];
                console.log("Arduino serial found: " + arduinoSerialPath);
-            }
          }
       }
       if (!found) {
@@ -230,10 +230,11 @@ function handleEvents() {
 function initializeIRC() {
    console.log("Initializing IRC connection...");
    bot = new irc.Client(ircServer, botNick, ircConfiguration);
+//   bot.addListener("raw", function(message) {console.log("IRC activity: %j", message); } );
    bot.addListener("message", onIrcMessage);
-   bot.addListener('error', function(message) {
-      console.log('IRC error: ', message);
-   });
+//   bot.addListener('error', function(message) {
+//      console.log('IRC error: ', message);
+//   });
    bot.addListener('names', function(chan, nicks) {
       console.log("Connected to channel " + ircChannel);
    });
@@ -244,7 +245,7 @@ function ircmsg(msg) {
 }
 
 function ircnotice(msg) {
-   bot.say(ircChannel, msg);
+   bot.notice(ircChannel, msg);
 }
 
 function onIrcMessage(from, to, message) {
@@ -254,6 +255,17 @@ function onIrcMessage(from, to, message) {
          bot.say(from, msg);
       } else {
          ircmsg(msg);
+      }
+   } else if (message.substring(0, 6) === "!getip") {
+      if (to === botNick) {
+         var ifaces = os.networkInterfaces();
+         for (var dev in ifaces) {
+            ifaces[dev].forEach(function(details) {
+               if (details.family=="IPv4") {
+                  bot.say(from, details.address.toString());
+               }
+            });
+         }
       }
    }
 }
