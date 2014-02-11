@@ -31,18 +31,53 @@ var coffeeLimits = [[35, "no coffee", 0],
 
 var ircChannel = "#test-coffeebot";
 var ircServer = "irc.cc.tut.fi";
+var ircPort = 6667;
 var botNick = "CoffeeBot";
+var ircUseSecure = false;
+
+var args = process.argv.splice(2);
+for(var i=0;i<args.length;i++) {
+    if(args[i].indexOf("=") == -1) {
+	console.log(args[i] + " not valid. Should be key=value.");
+	continue;
+    }
+    var key = args[i].split("=")[0];
+    var value = args[i].split("=")[1];
+    switch (key) {
+    case "botNick":
+        botNick = value;
+        break;
+    case "ircServer":
+        ircServer = value;
+        break;
+    case "port":
+        ircPort = parseInt(value);
+        break;
+    case "secure":
+        if(value === "true") {
+            ircUseSecure = true;
+        } else {
+            ircUseSecure = false;
+        }
+        break;
+    case "ircChannel":
+        ircChannel = value;
+        break;
+    default:
+	console.log("Unknown: " + key + " " + value);
+   }
+}
+
 var ircConfiguration = {
     userName: 'coffeebot',
     realName: 'Your friendly coffee servant',
-    //port: 994,
-    port: 6667,
+    port: ircPort,
     debug: true,
     showErrors: true,
     autoRejoin: true,
     autoConnect: true,
     channels: [ircChannel],
-    secure: false,
+    secure: ircUseSecure,
     selfSigned: true,
     certExpired: true,
     floodProtection: true,
@@ -241,11 +276,25 @@ function initializeIRC() {
 }
 
 function ircmsg(msg) {
-   bot.say(ircChannel, msg);
+   try {
+      bot.say(ircChannel, msg);
+   } catch (err) {
+	determineArduinoSerialPath();
+        initializeIRC();
+        initializeSerial();
+        setTimeout(5000, ircmsg(msg));
+   }
 }
 
 function ircnotice(msg) {
-   bot.notice(ircChannel, msg);
+   try {
+	bot.notice(ircChannel, msg);
+   } catch (err) {
+        determineArduinoSerialPath();
+        initializeIRC();
+        initializeSerial();
+        setTimeout(5000, ircnotice(msg));
+   }
 }
 
 function onIrcMessage(from, to, message) {
