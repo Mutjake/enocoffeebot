@@ -136,7 +136,7 @@ var bot = null;
 determineArduinoSerialPath();
 initializeIRC();
 initializeSerial();
-setInterval(function() {bot.say(botNick, "a");}, 5*60*1000); //Say something so self every once in a while to trigger the autoconnect 
+setInterval(function() {try {bot.say(botNick, "a"); } catch(err) {console.log(err);}}, 5*60*1000); //Say something so self every once in a while to trigger the autoconnect 
                                                           //if we have dropped from the net. (It's a hack.)
 setInterval(determineIfCoffeeAdded, 2*60*1000);
 
