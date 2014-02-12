@@ -80,7 +80,7 @@ var ircConfiguration = {
     secure: ircUseSecure,
     selfSigned: true,
     certExpired: true,
-    floodProtection: true,
+    floodProtection: false,
     floodProtectionDelay: 1000,
     messageSplit: 512
 };
