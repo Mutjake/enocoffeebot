@@ -151,6 +151,7 @@ var serialBuffer = "";
 function determineArduinoSerialPath() {
    // Finds arduino serial port and appends it to "arduinoserial" global variable. Only works properly if there is only 
    // one existing tty where manufacturer string contains "Arduino".
+   var arduinoSerials = [];
    serialPort.list(function (err, results) {
       if (err) {
          throw err;
@@ -160,18 +161,21 @@ function determineArduinoSerialPath() {
          if (typeof results[i]["manufacturer"] !== "undefined") {
             if (results[i]["manufacturer"].indexOf("Arduino") !== -1) {
                found = true;
-               arduinoSerialPath = results[i]["comName"];
-               console.log("Arduino serial found: " + arduinoSerialPath);
+               arduinoSerials.push(results[i]["comName"]);
+               //console.log("Arduino serial found: " + arduinoSerialPath);
             } 
          } else if (results[i]["pnpId"].indexOf("Arduino") !== -1) {
                found = true;
-               arduinoSerialPath = results[i]["comName"];
-               console.log("Arduino serial found: " + arduinoSerialPath);
+               arduinoSerials.push(results[i]["comName"]);
+               //console.log("Arduino serial found: " + arduinoSerialPath);
          }
       }
       if (!found) {
          console.log("Could not find arduino serial path. Trying again in one second...");
          setTimeout(determineArduinoSerialPath, 1000);
+      } else {
+         arduinoSerialPath = arduinoSerials[Math.floor(Math.random() * arduinoSerials.length)]; // Select random serial.
+         console.log("Found arduino serial(s). Selected: " + arduinoSerialPath);
       }
    });
 }
