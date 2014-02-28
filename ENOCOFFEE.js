@@ -323,6 +323,12 @@ function onIrcMessage(from, to, message) {
             });
          }
       }
+   } else if (message.substring(0,5) === "!arvo") {
+      if(message.indexOf(" ") !== -1) {
+         var values = message.split(" ").splice(0,1);
+         var result = values[Math.floor(Math.random() * values.length)];
+         ircmsg(result);         
+      }
    }
 }
 
