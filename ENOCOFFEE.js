@@ -1,3 +1,4 @@
+function main() {
 var serialPort = require("serialport"); //npm install serialport
 var sf = require("sf"); //npm install sf
 var irc = require("irc"); //npm install node-irc
@@ -358,4 +359,13 @@ function getCoffeeEstimateStr() {
       }
    }
    return coffeeLimits[coffeeLimits.length-1][1];
+}
+};
+
+while(true) {
+  try {
+    setTimeout(main, 2000);
+  } catch (e) {
+    console.log("ECRIT: " + e + "\nRestarting...");
+  }
 }
