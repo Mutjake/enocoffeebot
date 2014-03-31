@@ -363,12 +363,18 @@ function getCoffeeEstimateStr() {
    }
    return coffeeLimits[coffeeLimits.length-1][1];
 }
-};
+}
 
-while(true) {
+console.log("Let there be light.");
+
+function supervisor(self) {
   try {
-    setTimeout(main, 2000);
+    console.log("Starting main.");
+    main();
   } catch (e) {
     console.log("ECRIT: " + e + "\nRestarting...");
+    setTimeout(self, 2000);
   }
 }
+
+supervisor(supervisor);
