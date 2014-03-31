@@ -276,6 +276,9 @@ function initializeIRC() {
    bot.addListener('error', function(message) {
       console.log('IRC error: ', message);
    });
+  client.addListener('netError', function(error) {
+    console.log('IRC netError: ' + error);
+  });
    bot.addListener('names', function(chan, nicks) {
       console.log("Connected to channel " + ircChannel);
    });
