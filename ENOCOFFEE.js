@@ -136,8 +136,6 @@ var bot = null;
 determineArduinoSerialPath();
 initializeIRC();
 initializeSerial();
-setInterval(function() {try {bot.say(botNick, "a"); } catch(err) {console.log(err);}}, 5*60*1000); //Say something so self every once in a while to trigger the autoconnect 
-                                                          //if we have dropped from the net. (It's a hack.)
 setInterval(function() { if (((new Date() - latestUpdate) / 1000) > 30) { console.log("Serial unresponsive, re-initializing it...");
                                                                           determineArduinoSerialPath();
                                                                           initializeSerial(); }}, 30*1000);
