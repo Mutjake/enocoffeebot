@@ -272,9 +272,9 @@ function initializeIRC() {
    bot = new irc.Client(ircServer, botNick, ircConfiguration);
 //   bot.addListener("raw", function(message) {console.log("IRC activity: %j", message); } );
    bot.addListener("message", onIrcMessage);
-//   bot.addListener('error', function(message) {
-//      console.log('IRC error: ', message);
-//   });
+   bot.addListener('error', function(message) {
+      console.log('IRC error: ', message);
+   });
    bot.addListener('names', function(chan, nicks) {
       console.log("Connected to channel " + ircChannel);
    });
