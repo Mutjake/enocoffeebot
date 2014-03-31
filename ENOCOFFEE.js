@@ -188,8 +188,14 @@ function initializeSerial() {
       return;
    }
 
-   serial = new serialPort.SerialPort(arduinoSerialPath, {baudrate : 9200});
-
+   try {
+	serial = new serialPort.SerialPort(arduinoSerialPath, {baudrate : 9200});
+   } catch (exception) {
+     console.log("Failed to open Arduino port (" + exception + "). Retrying...");
+     setTimeout(determineArduinoSerialPath, 5000);
+     setTimeout(initializeSerial, 7500);
+     return;
+   }
    console.log("Arduino serial opened: " + arduinoSerialPath);
 
    serial.on("data", handleSerialData);
