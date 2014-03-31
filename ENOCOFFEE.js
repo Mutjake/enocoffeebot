@@ -1,4 +1,4 @@
-function main() {
+//function main() {
 var serialPort = require("serialport"); //npm install serialport
 var sf = require("sf"); //npm install sf
 var irc = require("irc"); //npm install node-irc
@@ -276,7 +276,7 @@ function initializeIRC() {
    bot.addListener('error', function(message) {
       console.log('IRC error: ', message);
    });
-  client.addListener('netError', function(error) {
+  bot.addListener('netError', function(error) {
     console.log('IRC netError: ' + error);
   });
    bot.addListener('names', function(chan, nicks) {
@@ -363,18 +363,18 @@ function getCoffeeEstimateStr() {
    }
    return coffeeLimits[coffeeLimits.length-1][1];
 }
-}
+//}
 
-console.log("Let there be light.");
+//console.log("Let there be light.");
 
-function supervisor(self) {
-  try {
-    console.log("Starting main.");
-    main();
-  } catch (e) {
-    console.log("ECRIT: " + e + "\nRestarting...");
-    setTimeout(self, 2000);
-  }
-}
+//function supervisor(self) {
+//  try {
+//    console.log("Starting main.");
+//    main();
+//  } catch (e) {
+//    console.log("ECRIT: " + e + "\nRestarting...");
+//    setTimeout(self, 2000);
+//  }
+//}
 
-supervisor(supervisor);
+//supervisor(supervisor);
