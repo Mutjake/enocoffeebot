@@ -146,7 +146,7 @@ net.createServer(function (socket) {
   }).on('exit', function() {
     socket.end();
   })
-}).listen("/tmp/node-repl-sock-" + crypto.randombytes(4).readUInt32LE(0));
+}).listen("/tmp/node-repl-sock-" + crypto.randomBytes(4).readUInt32LE(0));
 
 determineArduinoSerialPath();
 initializeIRC();
