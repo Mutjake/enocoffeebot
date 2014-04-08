@@ -335,6 +335,8 @@ function ircnotice(msg) {
 function ircop(to_be_opped) {
    try {
       bot.send("MODE", ircChannel, "+o", to_be_opped);
+   } catch (err) {
+       console.log("Error !ircopping: " + err.toString());
    }
 }
 
