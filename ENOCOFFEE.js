@@ -5,7 +5,7 @@ var irc = require("irc"); //npm install node-irc
 var os = require("os");
 var repl = require("repl");
 var net = require("net");
-
+var crypto = require("crypto");
 // Configs & Globals
 
 var arduinoSerialPath = null;
@@ -146,7 +146,7 @@ net.createServer(function (socket) {
   }).on('exit', function() {
     socket.end();
   })
-}).listen("/tmp/node-repl-sock");
+}).listen("/tmp/node-repl-sock-" + crypto.randombytes(4).readUInt32LE(0));
 
 determineArduinoSerialPath();
 initializeIRC();
