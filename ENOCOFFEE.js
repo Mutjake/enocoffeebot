@@ -4,6 +4,7 @@ var sf = require("sf"); //npm install sf
 var irc = require("irc"); //npm install node-irc
 var os = require("os");
 var repl = require("repl");
+var net = require("net");
 
 // Configs & Globals
 
