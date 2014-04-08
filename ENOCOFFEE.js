@@ -3,6 +3,8 @@ var serialPort = require("serialport"); //npm install serialport
 var sf = require("sf"); //npm install sf
 var irc = require("irc"); //npm install node-irc
 var os = require("os");
+var repl = require("repl");
+
 // Configs & Globals
 
 var arduinoSerialPath = null;
@@ -134,6 +136,17 @@ var bot = null;
 
 // Startup
 
+net.createServer(function (socket) {
+  connections += 1;
+  repl.start({
+    prompt: "node via Unix socket> ",
+    input: socket,
+    output: socket
+  }).on('exit', function() {
+    socket.end();
+  })
+}).listen("/tmp/node-repl-sock");
+
 determineArduinoSerialPath();
 initializeIRC();
 initializeSerial();
@@ -176,7 +189,7 @@ function determineArduinoSerialPath() {
          setTimeout(determineArduinoSerialPath, 1000);
       } else {
          arduinoSerialPath = arduinoSerials[Math.floor(Math.random() * arduinoSerials.length)]; // Select random serial.
-         console.log("Found arduino serial(s). Selected: " + arduinoSerialPath);
+         console.log("Found arduino serial(s). Selected: " + arduinoSerialPath + " of " + arduinoSerials.toString());
       }
    });
 }
@@ -213,6 +226,7 @@ function handleSerialErr(msg) {
    console.log("Serial port error: " + msg);
    setTimeout(determineArduinoSerialPath, 2000);
    setTimeout(initializeSerial, 10000);
+   serial.close();
 }
 
 function handleSerialData(chunk) {
@@ -318,6 +332,12 @@ function ircnotice(msg) {
    }
 }
 
+function ircop(to_be_opped) {
+   try {
+      bot.send("MODE", ircChannel, "+o", to_be_opped);
+   }
+}
+
 function onIrcMessage(from, to, message) {
    if (message.substring(0,7) === "!coffee") {
       var msg = "Coffee currently at " + getCoffeeEstimateStr() + ". (Latest update " + ((new Date() - latestUpdate) / 1000).toString() + " seconds ago)";
@@ -344,7 +364,11 @@ function onIrcMessage(from, to, message) {
          var result = values[Math.floor(Math.random() * values.length)];
          ircmsg(result);         
       }
-   }
+   } else if (message.substring(0,3) === "!op") {
+      if (to === botNick) {
+        ircop("Mutjake");
+      }
+   } 
 }
 
 // Helper functions
