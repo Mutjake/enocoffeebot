@@ -1,4 +1,3 @@
-//function main() {
 var serialPort = require("serialport"); //npm install serialport
 var sf = require("sf"); //npm install sf
 var irc = require("irc"); //npm install node-irc
@@ -203,6 +202,11 @@ function initializeSerial() {
       return;
    }
 
+   try {
+     serial.close();
+   } catch(err) {
+     // We are merely doing best effort to clean up old serial instances...
+   }
    
    serial = new serialPort.SerialPort(arduinoSerialPath, {baudrate : 9200}, true, function (err) {
      if (err) {
@@ -402,18 +406,4 @@ function getCoffeeEstimateStr() {
    }
    return coffeeLimits[coffeeLimits.length-1][1];
 }
-//}
 
-//console.log("Let there be light.");
-
-//function supervisor(self) {
-//  try {
-//    console.log("Starting main.");
-//    main();
-//  } catch (e) {
-//    console.log("ECRIT: " + e + "\nRestarting...");
-//    setTimeout(self, 2000);
-//  }
-//}
-
-//supervisor(supervisor);
