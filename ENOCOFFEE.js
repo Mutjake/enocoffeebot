@@ -38,6 +38,10 @@ var ircPort = 6667;
 var botNick = "CoffeeBot";
 var ircUseSecure = false;
 
+var serialPathTO = null;
+var initSerialTO = null;
+
+
 var args = process.argv.splice(2);
 for(var i=0;i<args.length;i++) {
     if(args[i].indexOf("=") == -1) {
@@ -162,6 +166,24 @@ var pre = "sensor:",
 
 var serialBuffer = "";
 
+function setInitSerialTimeout(timeout) {
+    try {
+        clearTimeout(initSerialTO);
+    } catch(err) {
+    }
+
+    initSerialTO = setTimeout(initializeSerial, timeout);
+}
+
+function setSerialPathSearchTimeout(timeout) {
+    try {
+        clearTimeout(serialPathTO);
+    } catch(err) {
+    }
+
+    serialPathTO = setTimeout(determineArduinoSerialPath, timeout);
+}
+
 function determineArduinoSerialPath() {
    // Finds arduino serial port and appends it to "arduinoserial" global variable. Only works properly if there is only 
    // one existing tty where manufacturer string contains "Arduino".
@@ -186,7 +208,7 @@ function determineArduinoSerialPath() {
       }
       if (!found) {
          console.log("Could not find arduino serial path. Trying again in one second...");
-         setTimeout(determineArduinoSerialPath, 1000);
+          setSerialPathSearchTimeout(1000);
       } else {
          arduinoSerialPath = arduinoSerials[Math.floor(Math.random() * arduinoSerials.length)]; // Select random serial.
          console.log("Found arduino serial(s). Selected: " + arduinoSerialPath + " of " + arduinoSerials.toString());
@@ -198,13 +220,16 @@ function initializeSerial() {
    var serialFailed = false;
    if (!arduinoSerialPath) {
       console.log("No arduino serial path set, aborting serial initialization. Trying again in one second...");
-            setTimeout(initializeSerial, 1000);
+
+      setInitSerialTimeout(1000);
       return;
    }
 
    try {
      serial.close();
    } catch(err) {
+     console.log("Serial.close err: ");
+     console.log(err);
      // We are merely doing best effort to clean up old serial instances...
    }
    
@@ -215,9 +240,9 @@ function initializeSerial() {
      }
    });
    if(serialFailed) {
-     setTimeout(determineArduinoSerialPath, 5000);
-     setTimeout(initializeSerial, 7500);
-     return;
+       setSerialPathSearchTimeout(5000);
+       setInitSerialTimeout(7500);
+       return;
    }
 
    console.log("Arduino serial opened: " + arduinoSerialPath);
@@ -228,16 +253,20 @@ function initializeSerial() {
 }
 
 function handleSerialErr(msg) {
-   console.log("Serial port error: " + msg);
-   setTimeout(determineArduinoSerialPath, 2000);
-   setTimeout(initializeSerial, 10000);
-   serial.close();
+    console.log("Serial port error: " + msg);
+    setSerialPathSearchTimeout(2000);
+    setInitSerialTimeout(10000);
+    try {
+	serial.close();
+    }
+    catch(err) {} 
+    serial = null;
 }
 
 function handleSerialData(chunk) {
    serialBuffer += chunk;
    serialBuffer = serialBuffer.replace(/ /g,'').replace(/(\r\n|\n|\r)/gm,""); //remove whitespaces etc.
-   //console.log(serialBuffer);
+   console.log("Got buf, length:" + serialBuffer.length);
    if (serialBuffer.indexOf(pre) !== -1 && serialBuffer.indexOf(post) !== -1) {
       var parseSnippet = serialBuffer.substring(serialBuffer.indexOf(pre)+pre.length,serialBuffer.indexOf(post));
       var parseResult = parseInt(parseSnippet);
